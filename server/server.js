@@ -1,70 +1,39 @@
-var mongoose = require('mongoose');
+const express = require('express');
+const bodyParser = require('body-parser');
 
+// local imports
+var {mongoose} = require('./db/mongoose.js');// requiring mongoose from ./db/
+var {Todo} = require('./models/todo.js');// requiring Todo mongoose model
+var {User} = require('./models/user.js');// requiring User mongoose model
 
-// mongoose config
-mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost:27017/TodoApp');
+var app = express();
 
-// mongoose model for Todo
-var Todo = mongoose.model('Todo', {
-    text: {
-        type: String,
-        required: true,
-        minlength: 1,
-        trim: true // removes white space
-    },
-    completed: {
-        type: Boolean,
-        default: false // default value
-    },
-    completedAt: {
-        type: Number,
-        default: null
-    }
+var port = process.env.PORT || 3000;// for heroku
+
+//===================
+//       MIDDLEWARE
+//===================
+app.use(bodyParser.json());
+
+//===================
+//         ROUTES
+//===================
+
+app.post('/todos', (req, res) => {
+    var todo = new Todo({
+        text: req.body.text
+    })
+    todo.save().then((doc) => {
+        res.send(doc);
+    }, (e) => {
+        res.status(400).send(e);
+    });
 });
 
 
-// // 1st
-// var newTodo = new Todo({
-//     text: 'Cook dinner'
-// });
-
-// newTodo.save().then((doc) => {
-//     console.log('Saved Todo',doc)
-// }, (e) => {
-//     console.log('Unable to save Todo');
-// });
-
-
-// // 2nd
-// var secondTodo = new Todo({
-//     text: true
-// });
-// secondTodo.save().then((res) => {
-//     console.log(JSON.stringify(res, undefined, 2));
-// }, (e)=> {
-//     console.log('error', e);
-// });
 
 
 
-
-// User model
-// email property - required, trimmed, type(string), min length 1
-
-var User = mongoose.model('User', {
-    email: {
-        type: String,
-        minlength: 1,
-        required: true,
-        trim: true
-    }
-});
-var newUser = new User({
-    email: ''
-});
-newUser.save().then((res) => {
-    console.log(JSON.stringify(res, undefined, 2));
-}, (e) => {
-    console.log('error', e);
+app.listen(port, () => {
+    console.log(`Server activated on port: ${port}.`);
 });
