@@ -19,6 +19,7 @@ app.use(bodyParser.json());
 //         ROUTES
 //===================
 
+    // /todos POST
 app.post('/todos', (req, res) => {
     var todo = new Todo({
         text: req.body.text
@@ -26,8 +27,17 @@ app.post('/todos', (req, res) => {
     todo.save().then((doc) => {
         res.send(doc);
     }, (e) => {
-        res.status(400).send(e);
+        res.status(400).send(e);// send error obj with status 400
     });
+});
+
+    // /todos GET
+app.get('/todos', (req, res) => {
+    Todo.find().then((todos) => {
+        res.send({todos}); // insead of an array-we send an obj - more flexibility later on
+    }, (e) => {
+        res.status(400).send(e);
+    })
 });
 
 

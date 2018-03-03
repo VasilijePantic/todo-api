@@ -10,7 +10,7 @@ const {Todo} = require('./../models/todo.js'); // requiring todo.js to make be s
 // beforeEach - func that makes sure that some conditions are met before the test starts
 beforeEach((done) => {// it will be called before the test case and will start the test after done is called
     Todo.remove({}).then(() => done());// empty DB before test
-            //because we assume bellow that DB is empty, its not atm rip
+            //because we assume bellow that DB is empty, its not atm rip in pepperoni
 });
 
 
