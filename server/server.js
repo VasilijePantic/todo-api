@@ -37,7 +37,7 @@ app.get('/todos', (req, res) => {
         res.send({todos}); // insead of an array-we send an obj - more flexibility later on
     }, (e) => {
         res.status(400).send(e);
-    })
+    });
 });
 
 

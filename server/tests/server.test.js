@@ -7,13 +7,25 @@ const {Todo} = require('./../models/todo.js'); // requiring todo.js to make be s
 
 // POST /todos ROUTE TEST
 
+// dummy array for seeding DB
+const todos = [{
+    text: 'First test todo'
+}, {
+    text: 'Second test todo'
+}];
+
+
+
 // beforeEach - func that makes sure that some conditions are met before the test starts
 beforeEach((done) => {// it will be called before the test case and will start the test after done is called
-    Todo.remove({}).then(() => done());// empty DB before test
+    Todo.remove({}).then(() => {
+        Todo.insertMany(todos); // will insert dummy todos in DB
+    }).then(() => done());// empty DB before test
             //because we assume bellow that DB is empty, its not atm rip in pepperoni
 });
 
 
+// DESCRIBE BLOCK FOR POST /todos
 describe('POST /todos', () => {
     // 1st test case
     it('should create a new todo', (done) => { // async test
@@ -31,7 +43,7 @@ describe('POST /todos', () => {
                     return done(err);
                 }
                 // we need to check if DB got the data
-                Todo.find().then((todos) => { // find data
+                Todo.find({text}).then((todos) => { // find data
                     expect(todos.length).toBe(1); // expect it to have 1 in this case
                     expect(todos[0].text).toBe(text);// expect that data to be var text
                     done(); // then call done
@@ -51,10 +63,25 @@ describe('POST /todos', () => {
                 }
 
                 Todo.find().then((todos) => {
-                    expect(todos.length).toBe(0);//we expect 0 because this code does not create a thing
+                    expect(todos.length).toBe(2);//we expect 2 - dummy todo seeds
                     done();
                 }).catch((e) => done(e));
             })
 
+    });
+});
+
+
+
+// DESCRIBE BLOCK FOR GET /todos
+describe('GET /todos', () => {
+    it('should get all todos', (done) => {
+        request(app)
+            .get('/todos')
+            .expect(200)
+            .expect((res) => {  // we expect something about the body of the response
+                expect(res.body.todos.length).toBe(2)
+            })  // we expect that there will be 2 todos in DB because of the dummy seeds
+            .end(done);
     });
 });
