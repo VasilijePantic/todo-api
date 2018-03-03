@@ -37,3 +37,5 @@ app.post('/todos', (req, res) => {
 app.listen(port, () => {
     console.log(`Server activated on port: ${port}.`);
 });
+
+module.exports = {app};
