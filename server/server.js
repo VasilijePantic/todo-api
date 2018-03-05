@@ -8,7 +8,6 @@ var {Todo} = require('./models/todo.js');// requiring Todo mongoose model
 var {User} = require('./models/user.js');// requiring User mongoose model
 
 var app = express();
-
 var port = process.env.PORT || 3000;// for heroku
 
 //===================
