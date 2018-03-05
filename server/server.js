@@ -45,7 +45,7 @@ app.get('/todos', (req, res) => {
 
 // /todos/:id GET
 app.get('/todos/:id', (req, res) => {
-    var id = req.params.id
+    var id = req.params.id;
     if(!ObjectID.isValid(id)) { //validate id with isValid
         return res.status(404).send(); //if not,stop func,respond 404,send()
     }

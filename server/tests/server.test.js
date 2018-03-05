@@ -1,5 +1,6 @@
 const expect = require('expect');
 const request = require('supertest');
+const {ObjectID} = require('mongodb');
 
 const {app} = require('./../server.js');// requiring server.js
 const {Todo} = require('./../models/todo.js'); // requiring todo.js to make be sure DB is filled
@@ -9,8 +10,10 @@ const {Todo} = require('./../models/todo.js'); // requiring todo.js to make be s
 
 // dummy array for seeding DB
 const todos = [{
+    _id: new ObjectID(),
     text: 'First test todo'
 }, {
+    _id: new ObjectID(),
     text: 'Second test todo'
 }];
 
@@ -82,6 +85,40 @@ describe('GET /todos', () => {
             .expect((res) => {  // we expect something about the body of the response
                 expect(res.body.todos.length).toBe(2)
             })  // we expect that there will be 2 todos in DB because of the dummy seeds
+            .end(done);
+    });
+});
+
+
+
+// DESCRIBE BLOCK FOR GET /todos/:id
+describe('GET /todos/:id',() => {
+
+    // test if it returns a todo
+    it('should return a single todo', (done) => {
+        request(app)    // getting the ID from dummy todos array
+            .get(`/todos/${todos[0]._id.toHexString()}`)// .toHexString will 'stringify' the ID obj
+            .expect(200)
+            .expect((res) => {  // the text propery returned should be the same as from dummy todo
+                expect(res.body.todo.text).toBe(todos[0].text)
+            })
+            .end(done);
+    });
+
+    // test if todo with that ID exists
+    it('should return 404 if todo not found', (done) => {
+        var hexId = new ObjectID().toHexString();// getting string version of the obj ID
+        request(app)
+            .get(`/todos/${hexId}`)
+            .expect(404)
+            .end(done);
+    });
+
+    // test if invalid obj ID
+    it('should return 404 for non-obj IDs', (done) => {
+        request(app)
+            .get('/todos/123abc')
+            .expect(404)
             .end(done);
     });
 });
