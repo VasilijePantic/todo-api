@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
@@ -70,13 +71,45 @@ app.delete('/todos/:id', (req, res) => {
         return res.status(404).send();
     }
     Todo.findByIdAndRemove(id).then((todo) => { // if valid, try to find it
-        if(!doc) { // if no doc with that id, return 404
+        if(!todo) { // if no doc with that id, return 404
             return res.status(404).send();
         }
         res.status(200).send({todo})// if found, send the doc
     }).catch((e) => {// if error
         res.status(400).send();// send status 400
     });
+});
+
+
+
+//---------------------------------------
+// UPDATE /todos/:id PATCH
+app.patch('/todos/:id', (req, res) => {
+    var id = req.params.id;
+    var body = _.pick(req.body, ['text', 'completed']);// pick what to update from req.body
+
+    if(!ObjectID.isValid(id)) {//check if ID is valid
+        return res.status(404).send();
+    }
+    //if it is valid and
+    if(_.isBoolean(body.completed) && body.completed) {// and if completed is true(and is boolean)
+        body.completedAt = new Date().getTime();// adding a timestamp to completedAt property
+    } else {// if not true, or not boolean
+        body.completed = false; //set completed to false
+        body.completedAt = null; // set completedAt to null - no data
+    }
+
+    // if conditions are met, we can find a todo and update it
+    Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+        if(!todo){// if no todo
+            return res.status(404).send();// send 404
+        }
+
+        res.send({todo});// if there is a todo - send it
+    }).catch((e) => {
+        res.status(400).send();
+    })
+
 });
 
 

@@ -89,6 +89,7 @@ describe('GET /todos', () => {
     });
 });
 
+//*********************************************************** */
 
 
 // DESCRIBE BLOCK FOR GET /todos/:id
@@ -122,6 +123,8 @@ describe('GET /todos/:id',() => {
             .end(done);
     });
 });
+
+//**************************************************************** */
 
 
 // DESCRIBE BLOCK FOR - DELETE /todos/:id
