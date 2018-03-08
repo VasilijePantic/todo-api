@@ -20,7 +20,7 @@ var port = process.env.PORT || 3000;// for heroku
 app.use(bodyParser.json());
 
 //===================
-//         ROUTES
+//     TODOS  ROUTES
 //===================
 
     // /todos POST
@@ -113,6 +113,25 @@ app.patch('/todos/:id', (req, res) => {
         res.status(400).send();
     })
 
+});
+
+
+
+
+//===================
+//     USERS ROUTES
+//===================
+
+// POST /users route
+app.post('/users', (req, res) => {
+    var body = _.pick(req.body, ['email', 'password']);// obj with email and password
+    var user = new User(body);// no need to pass it individually
+
+    user.save().then((user) => {
+        res.send(user);
+    }).catch((e) => {
+        res.status(400).send(e);
+    });
 });
 
 
