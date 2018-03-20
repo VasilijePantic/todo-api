@@ -10,6 +10,7 @@ const {ObjectID} = require('mongodb');
 var {mongoose} = require('./db/mongoose.js');// requiring mongoose from ./db/
 var {Todo} = require('./models/todo.js');// requiring Todo mongoose model
 var {User} = require('./models/user.js');// requiring User mongoose model
+var {authenticate} = require('./middleware/authenticate');// requiring middleware
 
 var app = express();
 var port = process.env.PORT || 3000;// for heroku
@@ -136,6 +137,13 @@ app.post('/users', (req, res) => {
     });
 });
 
+
+
+
+// PRIVATE/PUBLIC SOMETHING
+app.get('/users/me', authenticate, (req,res) => {
+    res.send(req.user);
+});
 
 
 
