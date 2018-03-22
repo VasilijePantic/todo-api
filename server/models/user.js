@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
-
+const bcrypt = require('bcryptjs');
 
 // User model
 // email property - required, trimmed, type(string), min length 1
@@ -87,6 +87,26 @@ UserSchema.statics.findByToken = function(token) {
         'tokens.access': 'auth'
     });
 };
+
+
+// bcrypt middleware for hashing passwords 
+UserSchema.pre('save', function(next) {
+    var user = this;
+
+    if (user.isModified('password')) {
+        bcrypt.genSalt(10, (err, salt) => {// hashing user.password
+            bcrypt.hash(user.password, salt, (err, hash) => {
+                user.password = hash;
+                next();// this will save hashed password in the DB
+            });
+        });
+    } else {
+        next();
+    }
+});
+
+
+
 
 var User = mongoose.model('User', UserSchema);
 
