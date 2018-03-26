@@ -4,30 +4,15 @@ const {ObjectID} = require('mongodb');
 
 const {app} = require('./../server.js');// requiring server.js
 const {Todo} = require('./../models/todo.js'); // requiring todo.js to make be sure DB is filled
+const {User} = require('./../models/user')
 
-
-// POST /todos ROUTE TEST
-
-// dummy array for seeding DB
-const todos = [{
-    _id: new ObjectID(),
-    text: 'First test todo'
-}, {
-    _id: new ObjectID(),
-    text: 'Second test todo',
-    completed: true,
-    completedAt: 333
-}];
+const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
 
 
 
 // beforeEach - func that makes sure that some conditions are met before the test starts
-beforeEach((done) => {// it will be called before the test case and will start the test after done is called
-    Todo.remove({}).then(() => {
-        Todo.insertMany(todos); // will insert dummy todos in DB
-    }).then(() => done());// empty DB before test
-            //because we assume bellow that DB is empty, its not atm rip in pepperoni
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);// from seed.js
 
 
 // DESCRIBE BLOCK FOR POST /todos
@@ -220,4 +205,100 @@ describe('PATCH /todos/:id', () => {
             })
             .end(done)
     });
+});
+
+
+
+
+//**************************************************************** */
+
+
+// BLOCK FOR - GET /users/me
+describe('GET /users/me', () => {
+    
+    // 1st test case
+    it('should return user if authenticated', (done) => {
+        request(app)
+            .get('/users/me')
+            .set('x-auth', users[0].tokens[0].token)// setting the header - 2 args - name and value
+            .expect(200)
+            .expect((res) => {
+                expect(res.body._id).toBe(users[0]._id.toHexString());
+                expect(res.body.email).toBe(users[0].email);
+            })
+            .end(done);
+    });
+
+
+    // 2nd test case
+    it('should return 401 if not authenticated', (done) => {
+        request(app)
+            .get('/users/me')
+            .expect(401)
+            .expect((res) => {
+                expect(res.body).toEqual({});//should be empty obj
+            })
+            .end(done);
+    });
+});
+
+
+//**************************************************************** */
+
+
+// BLOCK FOR - POST /users
+describe('POST /users', () => {
+
+    //1st test case
+    it('should create a user', (done) => {
+        var email = 'example@example.com';
+        var password = '123mnb!'
+
+        request(app)
+            .post('/users')
+            .send({email, password})
+            .expect(200)
+            .expect((res) => {
+                expect(res.headers['x-auth']).toBeTruthy();
+                expect(res.body._id).toBeTruthy();
+                expect(res.body.email).toBe(email);
+            })
+            .end((err) => {
+                if(err) {
+                    return done(err);
+                }
+
+                User.findOne({email}).then((user) => {
+                    expect(user).toBeTruthy();
+                    expect(user.password).not.toBe(password);// toNotBe() aint valid anymore
+                    done();
+                })
+            });
+    });
+    
+    //2nd test case
+    it('should return validation errors if request is invalid', (done) => {
+        request(app)
+            .post('/users')
+            .send({
+                email: 'and',
+                password: '123'
+            })
+            .expect(400)
+            .end(done);
+    });
+    
+    //3rd test case
+    it('should not create user if email is in use', (done) => {
+        request(app)
+            .post('/users')
+            .send({
+                email: users[0].email,
+                password: 'Password123!'
+            })
+            .expect(400)
+            .end(done);
+
+    });
+    
 });
