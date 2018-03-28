@@ -63,8 +63,24 @@ UserSchema.methods.generateAuthToken = function () {// () => {} cant bind this k
 
     return user.save().then(() => {
         return token;
+    });
+};
+
+
+// method for token deletion
+UserSchema.methods.removeToken = function(token) {
+    var user = this;
+
+    return user.update({
+        $pull: {// mongodb operator - lets you remove items from the array that match certain criteria
+            tokens: {
+                token: token
+            }
+        }
     })
 };
+
+
 
 
 // token auth method
