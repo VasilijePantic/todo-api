@@ -272,7 +272,7 @@ describe('POST /users', () => {
                     expect(user).toBeTruthy();
                     expect(user.password).not.toBe(password);// toNotBe() aint valid anymore
                     done();
-                })
+                }).catch((e) => done(e));
             });
     });
     
@@ -301,4 +301,63 @@ describe('POST /users', () => {
 
     });
     
+});
+
+
+
+// DESCRIBE BLOCK FOR - POST /users/login
+
+describe('POST /users/login', () => {
+
+    //1st test case
+    it('should login user and return auth token', (done) => {
+        request(app)
+            .post('/users/login')
+            .send({
+                email: users[1].email,
+                password: users[1].password
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.headers['x-auth']).toBeTruthy();
+            })
+            .end((err, res) => {
+                if(err) {
+                    return done(err);
+                }
+
+                User.findById(users[1]._id).then((user) => {
+                    expect(user.toObject().tokens[0]).toMatchObject({// instead of .toInclude
+                        access: 'auth', // user must be converted toObject()
+                        token: res.headers['x-auth']
+                    });
+                    done();
+                }).catch((e) => done(e));
+            });
+    });
+
+
+    //2nd test case
+    it('should reject invalid login', (done) => {
+        request(app)
+            .post('/users/login')
+            .send({
+                email: users[1].email,
+                password: users[1].password + '1'
+            })
+            .expect(400)
+            .expect((res) => {
+                expect(res.headers['x-auth']).not.toBeTruthy();
+            })
+            .end((err, res) => {
+                if(err) {
+                    return done(err);
+                }
+
+                User.findById(users[1]._id).then((user) => {
+                    expect(user.toObject().tokens.length).toBe(0);
+                    done();
+                }).catch((e) => done(e));
+            });
+    });
 });
