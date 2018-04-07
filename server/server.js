@@ -77,25 +77,24 @@ app.get('/todos/:id', authenticate, (req, res) => {
 //------------------------------
 
 // DELETE /todos/:id
-app.delete('/todos/:id', authenticate, (req, res) => {
+app.delete('/todos/:id', authenticate, async (req, res) => {
     // get the id   
-    var id = req.params.id;
+    const id = req.params.id;
     // validate the id
     if(!ObjectID.isValid(id)) {// if not valid, return 404 classic shieeet
         return res.status(404).send();
     }
 
-    Todo.findOneAndRemove({
-        _id: id,
-        _creator: req.user._id
-    }).then((todo) => { // if valid, try to find it
+    try {
+        const todo = await Todo.findOneAndRemove({_id: id, _creator: req.user._id});
         if(!todo) { // if no doc with that id, return 404
             return res.status(404).send();
         }
         res.status(200).send({todo})// if found, send the doc
-    }).catch((e) => {// if error
+
+    } catch (e) {
         res.status(400).send();// send status 400
-    });
+    }
 });
 
 
@@ -141,17 +140,18 @@ app.patch('/todos/:id', authenticate, (req, res) => {
 //===================
 
 // POST /users route
-app.post('/users', (req, res) => {
-    var body = _.pick(req.body, ['email', 'password']);// obj with email and password
-    var user = new User(body);// no need to pass it individually
+app.post('/users', async (req, res) => {
+    try {
+        const body = _.pick(req.body, ['email', 'password']);// obj with email and password
+        const user = new User(body);// no need to pass it individually
 
-    user.save().then((user) => {
-        return user.generateAuthToken();
-    }).then((token) => {
+        await user.save();
+
+        const token = user.generateAuthToken();
         res.header('x-auth', token).send(user);
-    }).catch((e) => {
+    } catch (e) {
         res.status(400).send(e);
-    });
+    }
 });
 
 
@@ -165,27 +165,28 @@ app.get('/users/me', authenticate, (req,res) => {
 
 
 // POST /users/login
-app.post('/users/login', (req, res) => {
-    var body = _.pick(req.body, ['email', 'password']);
+app.post('/users/login', async (req, res) => {
+    try {
+        const body = _.pick(req.body, ['email', 'password']);// we need the body
+        const user = await User.findByCredentials(body.email, body.password);// we 1st await for findBy..
+        const token = await user.generateAuthToken();// then we await for token
 
-    User.findByCredentials(body.email, body.password).then((user) => {
-        
-        return user.generateAuthToken().then((token) => {
-            res.header('x-auth', token).send(user);
-        });
-    }).catch((e) => {
+        res.header('x-auth', token).send(user);
+    } catch (e) {
         res.status(400).send();
-    });
+    }
 });
 
 
+
 // DELETE /users/me/token  ---- private route
-app.delete('/users/me/token', authenticate, (req, res) => {
-    req.user.removeToken(req.token).then(() => {
-        res.status(200).send();
-    }, () => {
+app.delete('/users/me/token', authenticate, async (req, res) => {// now async
+    try {
+        await req.user.removeToken(req.token);// we wait to see if it removes token
+        res.status(200).send(); // if it does => send status 200
+    } catch (e) {
         res.status(400).send();
-    })
+    }
 });
 
 

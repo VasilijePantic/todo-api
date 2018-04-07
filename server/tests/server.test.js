@@ -261,7 +261,8 @@ describe('PATCH /todos/:id', () => {
                 expect(res.body.todo.completed).toBe(false);
                 expect(res.body.todo.completedAt).toBeFalsy();
                 // expect(res.body.todo.completedAt).toBeA('number'); // HACKERMAN ERROR FOUND
-                // toBeA() - not working
+                // // toBeA() - not working
+                // expect(typeof res.body.todo.completedAt).toBe('number');
             })
             .end(done)
     });
